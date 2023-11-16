@@ -23,7 +23,7 @@
 // files into the `Contents` directory of the bundle.
 
 use super::{
-  super::common::{self, CommandExt},
+  super::common,
   icon::create_icns_file,
   sign::{notarize, notarize_auth, sign, NotarizeAuthError, SignTarget},
 };
@@ -38,6 +38,7 @@ use std::{
   path::{Path, PathBuf},
   process::Command,
 };
+use walkdir::WalkDir;
 
 const NESTED_CODE_FOLDER: [&str; 6] = [
   "MacOS",
@@ -140,11 +141,16 @@ pub fn bundle_project(settings: &Settings) -> crate::Result<Vec<PathBuf>> {
 }
 
 fn remove_extra_attr(app_bundle_path: &Path) -> crate::Result<()> {
-  Command::new("xattr")
-    .arg("-crs")
-    .arg(app_bundle_path)
-    .output_ok()
-    .context("failed to remove extra attributes from app bundle")?;
+  for entry in WalkDir::new(app_bundle_path).into_iter().filter_map(|e| e.ok()) {
+    let path = entry.path();
+    let mut command = Command::new("xattr");
+    command.arg("-c");
+    if entry.file_type().is_symlink() {
+      command.arg("-s");
+    }
+    command.arg(path);
+    command.output().with_context(|| format!("Failed to remove extra attributes from {path:?}"))?;
+  }
   Ok(())
 }
 
