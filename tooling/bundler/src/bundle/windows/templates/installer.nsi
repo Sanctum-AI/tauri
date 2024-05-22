@@ -570,7 +570,7 @@ Section Install
   {{/each}}
 
   ; Register deep links
-  {{#each deep_link_protocol as |protocol| ~}}
+  {{#each deep_link_protocols as |protocol| ~}}
     WriteRegStr SHCTX "Software\Classes\{{protocol}}" "URL Protocol" ""
     WriteRegStr SHCTX "Software\Classes\{{protocol}}" "" "URL:${BUNDLEID} protocol"
     WriteRegStr SHCTX "Software\Classes\{{protocol}}\DefaultIcon" "" "$\"$INSTDIR\${MAINBINARYNAME}.exe$\",0"
