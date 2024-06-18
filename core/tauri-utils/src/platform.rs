@@ -165,8 +165,13 @@ impl Target {
 /// [Hard Link]: https://en.wikipedia.org/wiki/Hard_link
 /// [See the patch that enabled this]: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=800179c9b8a1e796e441674776d11cd4c05d61d7
 pub fn current_exe() -> std::io::Result<PathBuf> {
-  self::starting_binary::STARTING_BINARY.cloned()
+  #[cfg(not(target_os = "windows"))]
+  let result = self::starting_binary::STARTING_BINARY.cloned();
+  #[cfg(target_os = "windows")]
+  let result = std::env::current_exe();
+  result
 }
+
 
 /// Try to determine the current target triple.
 ///
